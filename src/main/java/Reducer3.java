@@ -1,36 +1,42 @@
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.io.FloatWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapred.*;
+import org.apache.hadoop.mapreduce.Cluster;
+import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Reducer;
-import org.apache.hadoop.mapred.Counters;
 import org.apache.hadoop.mapreduce.Counter;
 
 import java.io.IOException;
 
-public class Reducer3 extends Reducer<Text, LongWritable, Text, LongWritable> {
-
-    // valeur après reduce
-    private LongWritable result = new LongWritable();
-
+public class Reducer3 extends Reducer<Text, LongWritable, Text, FloatWritable> {
+    Float proportion;
+    long sum = 0;
+    // valeur à écrire dans le hdfs file
+    private FloatWritable result = new FloatWritable();
+    // variable qui va stocker nos compteurs
+    private long counter;
+    
+    // on récupère la valeur de nos compteurs dans cette fonction
+    @Override
+    public void setup(Context context) throws IOException, InterruptedException {
+        Configuration conf = context.getConfiguration();
+        Cluster cluster = new Cluster(conf);
+        Job currentJob = cluster.getJob(context.getJobID());
+        counter = currentJob.getCounters().findCounter(Aggregate3.GenderCount.MALE).getValue() + currentJob.getCounters().findCounter(Aggregate3.GenderCount.FEMALE).getValue();
+    }
     // reduce(key, values, context)
     public void reduce(Text key, Iterable<LongWritable> values, Context context)throws IOException, InterruptedException{
-        long temp = 0;
-        // on stocke la clé dans un string dont on se servira pour incrémenter un compteur
-        String token = key.toString();
-        // on lit chaque valeur du tableau values
-        // puis, on somme chaque val
-        for(LongWritable val: values){
-            temp += val.get();
-
-            // parallèlement, on incrémente un de nos compteurs en fonction de la clé
-            if(GenderUtils.isAMale(token.charAt(0)))
-                context.getCounter(Aggregate3.GenderCount.MALE).increment(1);
-            else if(GenderUtils.isAFemale(token.charAt(0)))
-                context.getCounter(Aggregate3.GenderCount.FEMALE).increment(1);
-        }
-
-        // on set la somme des valeurs dans un objet LongWritable
-        result.set(temp);
-        // on écrit une nouvelle paire contenant la clé ainsi que la somme des valeurs ayant cette même clé
+        sum = 0;
+        // on somme les valeurs de la key
+        for(LongWritable val:values){
+          sum+=val.get();
+      }
+        // on calcule la proportion en divisant par le total de personnes
+        proportion = ((float)sum/(float)counter)*100;
+        result.set(proportion);
+        // on écrit dans hdfs
         context.write(key, result);
     }
 }

@@ -1,5 +1,6 @@
 Aggregate3.class
 Aggregate3$GenderCount.class
 GenderUtils.class
+Combiner3.class
 Mapper3.class
 Reducer3.class

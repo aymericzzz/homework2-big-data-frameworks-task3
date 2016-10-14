@@ -1,6 +1,8 @@
 /**
  * Created by Aymeric on 12/10/2016.
  */
+
+// classe avec des méthodes utiles pour incrémenter nos compteurs
 public class GenderUtils {
     public static boolean isAMale(char s){
         if( s == 'm' )

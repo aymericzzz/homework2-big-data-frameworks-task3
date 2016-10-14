@@ -38,9 +38,10 @@ public class Aggregate3 extends Configured implements Tool {
 
         // on set le mapper qui va mapper l'input
         job.setMapperClass(Mapper3.class);
+        // on set le combiner qui va faire un pre-reducing et également incrémenter nos compteurs
+        job.setCombinerClass(Combiner3.class);
         // on set le reducer pour le reduce job qui va reduce toutes les maps ensemble
         job.setReducerClass(Reducer3.class);
-
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(LongWritable.class);
         res = job.waitForCompletion(true) ? 0 : 1;
