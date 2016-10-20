@@ -2,4 +2,8 @@
 
 2) select count(temp.foo) from ((select count(org) as foo from prenoms lateral view explode(prenoms.origin) origins as org group by prenoms.prenom) as temp) group by temp.foo;
 
-3) select temp.foo/sum(temp.foo), temp.gnd from ((select count(*) as foo, gnd FROM prenoms lateral view explode(prenoms.gender) genders as gnd group by gnd) as temp) group by temp.gnd;
+3) SELECT sum(if(g='m',1,0))/count(*) AS m_prop, sum(if(g='f',1,0))/count(*) AS f_prop 
+FROM (
+SELECT prenom, g
+FROM prenoms LATERAL VIEW explode(prenoms.gender) genders AS g
+) A;

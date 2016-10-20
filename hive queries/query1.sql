@@ -1,0 +1,1 @@
+SELECT count(*), org FROM prenoms LATERAL VIEW EXPLODE(prenoms.origin) origins as org group by org;
